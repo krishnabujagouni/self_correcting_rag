@@ -1,0 +1,23 @@
+[project]
+name = "self_correcting_rag"
+version = "0.1.0"
+description = "SELF_CORRECTING_RAG using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai[tools]>=0.177.0,<1.0.0"
+]
+
+[project.scripts]
+self_correcting_rag = "self_correcting_rag.main:run"
+run_crew = "self_correcting_rag.main:run"
+train = "self_correcting_rag.main:train"
+replay = "self_correcting_rag.main:replay"
+test = "self_correcting_rag.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"

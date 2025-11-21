@@ -1,0 +1,111 @@
+# retrieve_task:
+#   description: >
+#     Retrieve the most relevant documents from the knowledge base based on the user's query: {query}.
+#     Use semantic search and return a concise context summary containing the top relevant sections.
+#   expected_output: >
+#     A list of retrieved documents or context snippets ranked by relevance to the query.
+#   agent: RetrieverAgent
+
+# guardrail_task:
+#   description: >
+#     Review the retrieved context for factual and semantic relevance to the original query: {query}.
+#     Remove irrelevant or noisy information and keep only text directly useful for answering the question.
+#   expected_output: >
+#     A cleaned and relevance-validated context dataset ready for answer generation.
+#   agent: GuardrailAgent
+
+# generate_answer_task:
+#   description: >
+#     Using the filtered context, generate a detailed and accurate answer to the query: {query}.
+#     Ensure the response is well-structured, clear, and directly supported by the provided context.
+#   expected_output: >
+#     A concise, well-written final answer to the query.
+#   agent: GeneratorAgent
+
+# evaluate_answer_task:
+#   description: >
+#     Evaluate the generated answer against the validated context for query: {query}
+    
+#     Evaluation criteria:
+#     1. Factual Consistency: Does every claim in the answer come from the context?
+#     2. Completeness: Does it address all parts of the query that the context supports?
+#     3. Accuracy: Are there any misrepresentations of the context?
+#     4. Clarity: Is the answer well-structured and clear?
+    
+#     Provide:
+#     - A score from 0-100
+#     - Detailed justification
+#     - Any concerns about hallucination or unsupported claims
+    
+#   expected_output: >
+#     {
+#     "answer": "<the full answer generated in generate_answer_task>",
+#     "evaluation": {
+#       "score": <0-100>,
+#       "factual_consistency": "<evaluation>",
+#       "completeness": "<evaluation>",
+#       "accuracy": "<evaluation>",
+#       "concerns": "<any issues found>",
+#       "recommendation": "<pass/revise/fail>"
+#       }
+#     }
+#   agent: EvaluatorAgent
+
+retrieve_task:
+  description: >
+    Use the search tool to find documents related to: {query}.
+  expected_output: >
+    Raw text from the knowledge base.
+  agent: RetrieverAgent
+
+guardrail_task:
+  description: >
+    Remove irrelevant information from the context. Keep only facts about: {query}.
+    If the context is huge, summarize the key points relevant to the query.
+  expected_output: >
+    Cleaned, relevant text chunks. No conversational filler.
+  agent: GuardrailAgent
+
+generate_answer_task:
+  description: >
+    Analyze the provided context below and write a detailed answer to the question: "{query}".
+    
+    CONTEXT:
+    {context}
+    
+    Instructions:
+    - Look for specific entities, definitions, or lists in the context.
+    - If you find them, include them in your answer.
+    - Ignore "system" text or irrelevant examples.
+  expected_output: >
+    The direct answer to the question.
+  agent: GeneratorAgent
+
+evaluate_answer_task:
+  description: >
+    Compare the answer to the context. 
+    Check if the answer is a refusal (e.g. "I don't know"). If so, fail it (Score 0).
+    If the answer contains valid facts, pass it.
+    Return ONLY the JSON object.
+  expected_output: >
+    Valid JSON string with score, recommendation, and concerns.
+  agent: EvaluatorAgent
+
+regenerate_answer_task:
+  description: >
+    Rewrite the answer to address the specific concerns.
+  expected_output: >
+    The revised answer text.
+  agent: ReGeneratorAgent
+
+query_reformulation_task:
+  description: >
+    The previous answer to "{query}" was insufficient.
+    Feedback: {evaluation}
+    
+    Create a new, targeted search query to find the missing information about "{query}".
+    The new query should be related to the previous query.
+    Do NOT search for words like "accuracy" or "verification". Focus on the TOPIC.
+  expected_output: >
+    A single string of keywords (e.g. "autonomous driving safety regulations").
+  agent: QueryReformulatorAgent
